@@ -59,12 +59,13 @@
     data: { correct_label: trial.label }
   }));
 
-  // Initialize the experiment
-  jsPsych.init({
-    timeline,
+  // Initialize jsPsych (v7)
+  const jsPsych = initJsPsych({
     display_element: 'jspsych-target',
     on_finish: () => jsPsych.data.get().localSave('csv','deepfake_survey_results.csv')
   });
+  // Run the timeline
+  jsPsych.run(timeline);
   </script>
 </body>
 </html>
