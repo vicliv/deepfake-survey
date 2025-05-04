@@ -10,11 +10,28 @@
   <script src="https://unpkg.com/@jspsych/plugin-html-button-response@1.1.0"></script>
   <link href="https://unpkg.com/jspsych@7.3.4/css/jspsych.css" rel="stylesheet" type="text/css" />
   <script src="https://unpkg.com/@jspsych/plugin-image-button-response@1.2.0"></script>
+  <!-- Firebase SDK (compat build so `firebase.initializeApp` works) -->
+  <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-database-compat.js"></script>
 </head>
 <body>
   <div id="jspsych-target"></div>
 
   <script>
+    // Firebase configuration
+    const firebaseConfig = {
+    apiKey: "AIzaSyBMsjytFlmAhKhlBs1DNZx4Qc9C7Fftus8",
+    authDomain: "deepfakesurvey.firebaseapp.com",
+    databaseURL: "https://deepfakesurvey-default-rtdb.firebaseio.com",
+    projectId: "deepfakesurvey",
+    storageBucket: "deepfakesurvey.firebasestorage.app",
+    messagingSenderId: "966056842823",
+    appId: "1:966056842823:web:4a2556244de18623028362"
+    };
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+    
     // == Experiment configuration ==
     // 1) List of 24 real image URLs
     const realImages = Array.from({length: 24}, (_, i) => `images/real/image_${i}.jpg`);
@@ -23,7 +40,7 @@
     const methods = {
       "4o":   Array.from({length: 24}, (_, i) => `images/4o/image_${i}.png`),
       "Flux.1-dev": Array.from({length: 24}, (_, i) => `images/Flux.1-dev/image_${i}.png`),
-      "Grok": Array.from({length: 24}, (_, i) => `images/Grok/image_${i}.jpg`),
+      "Grok": Array.from({length: 24}, (_, i) => `images/Grok/image_${i}.png`),
       "Imagen": Array.from({length: 24}, (_, i) => `images/Imagen/image_${i}.jpg`),
       "SD2":  Array.from({length: 24}, (_, i) => `images/SD2/image_${i}.png`),
       "SDv3.5": Array.from({length: 24}, (_, i) => `images/SDv3.5/image_${i}.png`)
@@ -73,9 +90,11 @@
           <p>In this survey, you will view a series of images and decide whether each one is <strong>Real</strong> or a <strong>Deepfake</strong>.</p>
           <p><strong>Instructions:</strong></p>
             <p>Each image will be shown one at a time.</p>
-            <p>The deepfakes are generated using various methods, some much better than others. Thus, examine the image carefully.</p>
+            <p>The deepfakes were created using a variety of methods. Some are difficult to detect, while others are much easier to spot. Please examine each image carefully.</p>
             <p>Click the <strong>Real</strong> button if you think the image is a real photograph.</p>
             <p>Click the <strong>Deepfake</strong> button if you think the image is computer-generated or manipulated.</p>
+            <p>You won't be able to go back to previous images, so please make your best guess.</p>
+            <p>Do not take the survey more than once.</p>
         `,
         choices: ["Start"] // Allows any key press to proceed
       };
@@ -95,11 +114,11 @@
 
   // Initialize jsPsych (v7)
   const jsPsych = initJsPsych({
-    display_element: 'jspsych-target',
-    on_finish: () => {
-      // transform all trial data to ensure numeric codes
-      const rawArray = JSON.parse(jsPsych.data.get().json());
-      const transformedArray = rawArray.filter(trial => trial.trial_index !== 0) // Exclude instructions trial (trial_index: 0)
+  display_element: 'jspsych-target',
+  on_finish: () => {
+    // Transform trial data
+    const rawArray = JSON.parse(jsPsych.data.get().json());
+    const transformedArray = rawArray.filter(trial => trial.trial_index !== 0) // Exclude instructions trial
       .map(trial => ({
         trial_index: trial.trial_index,
         stimulus: trial.stimulus,
@@ -107,19 +126,17 @@
         rt: trial.rt,
         correct_label: trial.correct_label === 'Real' ? 0 : 1
       }));
-    const payload = JSON.stringify(transformedArray);
-    console.log('Numeric payload:', payload);
-    fetch(`https://script.google.com/macros/s/AKfycbyPIM_Lh63i8zrRlkyHk4mK5pXVQh3iiEmPCPqH4DZ5x2izKTBASOGyTaWtu6j3rZeqtA/exec?data=${encodeURIComponent(payload)}`, {
-    method: 'GET'
-    })
-    .then(response => {
-    if (!response.ok) {
-        console.error('Data upload failed', response.statusText);
-    }
-    })
-    .catch(err => console.error('Fetch error:', err));
-      // jsPsych.data.get().localSave('csv','deepfake_survey_results.csv'); // Local save commented out
-    }
+    const payload = transformedArray; // No need to stringify for Firebase
+
+    // Send data to Firebase
+    database.ref('survey_responses').push(payload)
+      .then(() => {
+        console.log('Data successfully uploaded to Firebase');
+      })
+      .catch(err => {
+        console.error('Firebase upload error:', err);
+      });
+  }
   });
   // Run the timeline
   jsPsych.run(timeline);
