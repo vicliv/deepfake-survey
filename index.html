@@ -13,7 +13,7 @@
   <!-- jsPsych core library -->
   <script src="https://unpkg.com/jspsych@7.3.1/dist/js/jspsych.js"></script>
   <!-- Plugin for image-button-response -->
-  <script src="https://unpkg.com/jspsych@7.3.1/dist/js/plugins/jspsych-image-button-response.js"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-image-button-response@1.1.3"></script>
 
   <script>
   // == Experiment configuration ==
@@ -48,12 +48,11 @@
   // 4) Build trial array and shuffle
   let trials = sampleReals.map(url => ({ url, label: "Real" }))
     .concat(sampleFakes.map(url => ({ url, label: "Fake" })));
-  // Shuffle trials using our sample helper
   trials = sample(trials, trials.length);
 
   // 5) jsPsych timeline
   const timeline = trials.map(trial => ({
-    type: 'image-button-response',
+    type: jsPsychImageButtonResponse,  // Updated to use plugin class
     stimulus: trial.url,
     choices: ['Real', 'Deepfake'],
     prompt: '<p>Is this image a deepfake?</p>',
