@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deepfake Detection Survey</title>
+  <!-- jsPsych CSS -->
+  <link href="https://unpkg.com/jspsych@7.3.1/css/jspsych.css" rel="stylesheet">
+</head>
+<body>
+  <div id="jspsych-target"></div>
+
+  <!-- jsPsych core library -->
+  <script src="https://unpkg.com/jspsych@7.3.1/jspsych.js"></script>
+  <!-- Plugin for image-button-response -->
+  <script src="https://unpkg.com/jspsych@7.3.1/plugins/jspsych-image-button-response.js"></script>
+
+  <script>
+  // == Experiment configuration ==
+  // 1) List of 24 real image URLs (e.g., "images/real/img1.jpg")
+  const realImages = [
+    "images/real/real1.jpg", // replace with your filenames
+    /* ... up to 24 ... */
+  ];
+
+  // 2) Object mapping method names to their 24 generated image URLs
+  const methods = {
+    A: ["images/methodA/fake1.jpg", /* ... 24 URLs ... */],
+    B: ["images/methodB/fake1.jpg", /* ... */],
+    C: ["images/methodC/fake1.jpg", /* ... */],
+    D: ["images/methodD/fake1.jpg", /* ... */],
+    E: ["images/methodE/fake1.jpg", /* ... */],
+    F: ["images/methodF/fake1.jpg", /* ... */]
+  };
+
+  // Utility: random sample n items from an array
+  function sample(array, n) {
+    const a = array.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a.slice(0, n);
+  }
+
+  // 3) Draw 12 random reals and 2 fakes per method
+  const sampleReals = sample(realImages, 12);
+  const sampleFakes = Object.values(methods)
+    .flatMap(arr => sample(arr, 2));
+
+  // 4) Build trial array and shuffle
+  let trials = sampleReals.map(url => ({ url, label: "Real" }))
+    .concat(sampleFakes.map(url => ({ url, label: "Fake" })));
+  trials = jsPsych.randomization.shuffle(trials);
+
+  // 5) jsPsych timeline
+  const timeline = trials.map(trial => ({
+    type: 'image-button-response',
+    stimulus: trial.url,
+    choices: ['Real', 'Deepfake'],
+    prompt: '<p>Is this image a deepfake?</p>',
+    data: { correct_label: trial.label }
+  }));
+
+  // Initialize the experiment
+  jsPsych.init({
+    timeline,
+    display_element: 'jspsych-target',
+    on_finish: () => jsPsych.data.get().localSave('csv','deepfake_survey_results.csv')
+  });
+  </script>
+</body>
+</html>
