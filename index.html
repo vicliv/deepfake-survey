@@ -17,20 +17,17 @@
 
   <script>
   // == Experiment configuration ==
-  // 1) List of 24 real image URLs (e.g., "images/real/img1.jpg")
-  const realImages = [
-    "images/real/real1.jpg", // replace with your filenames
-    /* ... up to 24 ... */
-  ];
+  // 1) List of 24 real image URLs
+  const realImages = Array.from({length: 24}, (_, i) => `images/real/image_${i}.png`);
 
   // 2) Object mapping method names to their 24 generated image URLs
   const methods = {
-    A: ["images/methodA/fake1.jpg", /* ... 24 URLs ... */],
-    B: ["images/methodB/fake1.jpg", /* ... */],
-    C: ["images/methodC/fake1.jpg", /* ... */],
-    D: ["images/methodD/fake1.jpg", /* ... */],
-    E: ["images/methodE/fake1.jpg", /* ... */],
-    F: ["images/methodF/fake1.jpg", /* ... */]
+    "4o":   Array.from({length: 24}, (_, i) => `images/4o/image_${i}.png`),
+    "Flux.1-dev": Array.from({length: 24}, (_, i) => `images/Flux.1-dev/image_${i}.png`),
+    "Grok": Array.from({length: 24}, (_, i) => `images/Grok/image_${i}.jpg`),
+    "Imagen": Array.from({length: 24}, (_, i) => `images/Imagen/image_${i}.jpg`),
+    "SD2":  Array.from({length: 24}, (_, i) => `images/SD2/image_${i}.png`),
+    "SDXL": Array.from({length: 24}, (_, i) => `images/SDXL/image_${i}.png`)
   };
 
   // Utility: random sample n items from an array
