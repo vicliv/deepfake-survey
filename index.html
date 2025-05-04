@@ -67,8 +67,8 @@
     trials.map(trial => ({
       type: jsPsychImageButtonResponse,
       stimulus: trial.url,
-      stimulus_width: 600,
-      stimulus_height: 400,
+      stimulus_width: 300,
+      stimulus_height: 200,
       choices: ['Real', 'Deepfake'],
       prompt: '<p>Is this image a deepfake?</p>',
       data: { correct_label: trial.label }
