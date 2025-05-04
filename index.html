@@ -1,71 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Deepfake Detection Survey</title>
-  <!-- jsPsych CSS -->
-  <link href="https://unpkg.com/jspsych@7.3.1/dist/css/jspsych.css" rel="stylesheet">
-</head>
-<body>
-  <div id="jspsych-target"></div>
-
-  <!-- jsPsych core library -->
-  <script src="https://unpkg.com/jspsych@7.3.1/dist/js/jspsych.js"></script>
-  <!-- Plugin for image-button-response -->
-  <script src="https://unpkg.com/@jspsych/plugin-image-button-response@1.1.3"></script>
-
+<html>
+  <head>
+    <title>My experiment</title>
+    <script src="https://unpkg.com/jspsych@7.3.4"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@1.1.3"></script>
+    <link href="https://unpkg.com/jspsych@7.3.4/css/jspsych.css" rel="stylesheet" type="text/css" />
+  </head>
+  <body></body>
   <script>
-  // == Experiment configuration ==
-  // 1) List of 24 real image URLs
-  const realImages = Array.from({length: 24}, (_, i) => `images/real/image_${i}.png`);
+    const jsPsych = initJsPsych();
 
-  // 2) Object mapping method names to their 24 generated image URLs
-  const methods = {
-    "4o":   Array.from({length: 24}, (_, i) => `images/4o/image_${i}.png`),
-    "Flux.1-dev": Array.from({length: 24}, (_, i) => `images/Flux.1-dev/image_${i}.png`),
-    "Grok": Array.from({length: 24}, (_, i) => `images/Grok/image_${i}.jpg`),
-    "Imagen": Array.from({length: 24}, (_, i) => `images/Imagen/image_${i}.jpg`),
-    "SD2":  Array.from({length: 24}, (_, i) => `images/SD2/image_${i}.png`),
-    "SDXL": Array.from({length: 24}, (_, i) => `images/SDXL/image_${i}.png`)
-  };
-
-  // Utility: random sample n items from an array
-  function sample(array, n) {
-    const a = array.slice();
-    for (let i = a.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [a[i], a[j]] = [a[j], a[i]];
+    const hello_trial = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: 'Hello world!'
     }
-    return a.slice(0, n);
-  }
 
-  // 3) Draw 12 random reals and 2 fakes per method
-  const sampleReals = sample(realImages, 12);
-  const sampleFakes = Object.values(methods)
-    .flatMap(arr => sample(arr, 2));
-
-  // 4) Build trial array and shuffle
-  let trials = sampleReals.map(url => ({ url, label: "Real" }))
-    .concat(sampleFakes.map(url => ({ url, label: "Fake" })));
-  trials = sample(trials, trials.length);
-
-  // 5) jsPsych timeline
-  const timeline = trials.map(trial => ({
-    type: jsPsychImageButtonResponse,  // Updated to use plugin class
-    stimulus: trial.url,
-    choices: ['Real', 'Deepfake'],
-    prompt: '<p>Is this image a deepfake?</p>',
-    data: { correct_label: trial.label }
-  }));
-
-  // Initialize jsPsych (v7)
-  const jsPsych = initJsPsych({
-    display_element: 'jspsych-target',
-    on_finish: () => jsPsych.data.get().localSave('csv','deepfake_survey_results.csv')
-  });
-  // Run the timeline
-  jsPsych.run(timeline);
+    jsPsych.run([hello_trial]);
   </script>
-</body>
 </html>
