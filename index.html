@@ -48,7 +48,8 @@
   // 4) Build trial array and shuffle
   let trials = sampleReals.map(url => ({ url, label: "Real" }))
     .concat(sampleFakes.map(url => ({ url, label: "Fake" })));
-  trials = jsPsych.randomization.shuffle(trials);
+  // Shuffle trials using our sample helper
+  trials = sample(trials, trials.length);
 
   // 5) jsPsych timeline
   const timeline = trials.map(trial => ({
