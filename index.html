@@ -2,86 +2,194 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=0.7">
   <title>Deepfake Detection Survey</title>
   <!-- jsPsych CSS -->
   <script src="https://unpkg.com/jspsych@7.3.4"></script>
   <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@1.1.3"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-html-button-response@1.1.0"></script>
   <link href="https://unpkg.com/jspsych@7.3.4/css/jspsych.css" rel="stylesheet" type="text/css" />
   <script src="https://unpkg.com/@jspsych/plugin-image-button-response@1.2.0"></script>
-  <script src="https://unpkg.com/@jspsych/plugin-preload@1.1.0"></script>
-  <style>
-    /* limit the on-screen size of stimuli */
-    img.jspsych-image-button-response-stimulus {
-      max-width: 600px;
-      max-height: 400px;
-      width: auto;
-      height: auto;
-    }
-  </style>
 </head>
 <body>
   <div id="jspsych-target"></div>
 
   <script>
-  // == Experiment configuration ==
-  // 1) List of 24 real image URLs
-  const realImages = Array.from({length: 24}, (_, i) => `images/real/image_${i}.png`);
-
-  // 2) Object mapping method names to their 24 generated image URLs
-  const methods = {
-    "4o":   Array.from({length: 24}, (_, i) => `images/4o/image_${i}.png`),
-    "Flux.1-dev": Array.from({length: 24}, (_, i) => `images/Flux.1-dev/image_${i}.png`),
-    "Grok": Array.from({length: 24}, (_, i) => `images/Grok/image_${i}.jpg`),
-    "Imagen": Array.from({length: 24}, (_, i) => `images/Imagen/image_${i}.jpg`),
-    "SD2":  Array.from({length: 24}, (_, i) => `images/SD2/image_${i}.png`),
-    "SDXL": Array.from({length: 24}, (_, i) => `images/SDXL/image_${i}.png`)
-  };
-
-  // Utility: random sample n items from an array
-  function sample(array, n) {
-    const a = array.slice();
-    for (let i = a.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [a[i], a[j]] = [a[j], a[i]];
+    // == Experiment configuration ==
+    // 1) List of 24 real image URLs
+    const realImages = Array.from({length: 24}, (_, i) => `images/real/image_${i}.jpg`);
+    
+    // 2) Object mapping method names to their 24 generated image URLs
+    const methods = {
+      "4o":   Array.from({length: 24}, (_, i) => `images/4o/image_${i}.png`),
+      "Flux.1-dev": Array.from({length: 24}, (_, i) => `images/Flux.1-dev/image_${i}.png`),
+      "Grok": Array.from({length: 24}, (_, i) => `images/Grok/image_${i}.jpg`),
+      "Imagen": Array.from({length: 24}, (_, i) => `images/Imagen/image_${i}.jpg`),
+      "SD2":  Array.from({length: 24}, (_, i) => `images/SD2/image_${i}.png`),
+      "SDv3.5": Array.from({length: 24}, (_, i) => `images/SDv3.5/image_${i}.png`)
+    };
+    
+    // Utility: random sample n items from an array
+    function sample(array, n) {
+      const shuffled = array.slice();
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      return shuffled.slice(0, n);
     }
-    return a.slice(0, n);
-  }
 
-  // 3) Draw 12 random reals and 2 fakes per method
-  const sampleReals = sample(realImages, 12);
-  const sampleFakes = Object.values(methods)
-    .flatMap(arr => sample(arr, 2));
+    // 3) Draw 12 random real-image indices
+    const indices = Array.from({length: 24}, (_, i) => i);
+    const realIndices = sample(indices, 12);
+    let fakePool = indices.filter(i => !realIndices.includes(i));
+    // 4) From the remaining indices, sample 2 per each method
+    const fakeIndicesByMethod = {};
+    Object.keys(methods).forEach(method => {
+      const picks = sample(fakePool, 2);
+      fakeIndicesByMethod[method] = picks;
+      fakePool = fakePool.filter(i => !picks.includes(i));
+    });
+    // 5) Build trials for all 24 indices
+    let trials = [];
+    indices.forEach(i => {
+      if (realIndices.includes(i)) {
+        trials.push({ url: realImages[i], label: "Real" });
+      } else {
+        const method = Object.keys(fakeIndicesByMethod)
+          .find(m => fakeIndicesByMethod[m].includes(i));
+        trials.push({ url: methods[method][i], label: "Fake" });
+      }
+    });
+    // 6) Shuffle trial order
+    trials = sample(trials, trials.length);
 
-  // 4) Build trial array and shuffle
-  let trials = sampleReals.map(url => ({ url, label: "Real" }))
-    .concat(sampleFakes.map(url => ({ url, label: "Fake" })));
-  trials = sample(trials, trials.length);
-
-  // 5) jsPsych timeline with preload and resized images
-  const preload = {
-    type: jsPsychPreload,
-    images: realImages.concat(...Object.values(methods).flat())
-  };
-  const timeline = [preload].concat(
-    trials.map(trial => ({
-      type: jsPsychImageButtonResponse,
-      stimulus: trial.url,
-      stimulus_width: 300,
-      stimulus_height: 200,
-      choices: ['Real', 'Deepfake'],
-      prompt: '<p>Is this image a deepfake?</p>',
-      data: { correct_label: trial.label }
-    }))
-  );
+    // 5) jsPsych timeline
+    // Instructions trial
+    const instructions = {
+        type: jsPsychHtmlButtonResponse,
+        stimulus: `
+          <h2>Welcome to the Deepfake Detection Survey</h2>
+          <p>In this survey, you will view a series of images and decide whether each one is <strong>Real</strong> or a <strong>Deepfake</strong>.</p>
+          <p><strong>Instructions:</strong></p>
+            <p>Each image will be shown one at a time.</p>
+            <p>The deepfakes are generated using various methods, some much better than others. Thus, examine the image carefully.</p>
+            <p>Click the <strong>Real</strong> button if you think the image is a real photograph.</p>
+            <p>Click the <strong>Deepfake</strong> button if you think the image is computer-generated or manipulated.</p>
+        `,
+        choices: ["Start"] // Allows any key press to proceed
+      };
+      
+      // Image trials
+      const imageTrials = trials.map(trial => ({
+        type: jsPsychImageButtonResponse,
+        stimulus: trial.url,
+        choices: ['Real', 'Deepfake'],
+        prompt: '<p>Is this image a deepfake?</p>',
+        data: { correct_label: trial.label },
+        stimulus_height: 500 // Set height in pixels
+      }));
+      
+      // Combine instructions and image trials
+      const timeline = [instructions, ...imageTrials];
 
   // Initialize jsPsych (v7)
   const jsPsych = initJsPsych({
     display_element: 'jspsych-target',
-    on_finish: () => jsPsych.data.get().localSave('csv','deepfake_survey_results.csv')
+    on_finish: () => {
+      // transform all trial data to ensure numeric codes
+      const rawArray = JSON.parse(jsPsych.data.get().json());
+      const transformedArray = rawArray.filter(trial => trial.trial_index !== 0) // Exclude instructions trial (trial_index: 0)
+      .map(trial => ({
+        trial_index: trial.trial_index,
+        stimulus: trial.stimulus,
+        response: trial.response === 'Real' ? 0 : 1,
+        rt: trial.rt,
+        correct_label: trial.correct_label === 'Real' ? 0 : 1
+      }));
+    const payload = JSON.stringify(transformedArray);
+    console.log('Numeric payload:', payload);
+    fetch(`https://script.google.com/macros/s/AKfycbyPIM_Lh63i8zrRlkyHk4mK5pXVQh3iiEmPCPqH4DZ5x2izKTBASOGyTaWtu6j3rZeqtA/exec?data=${encodeURIComponent(payload)}`, {
+    method: 'GET'
+    })
+    .then(response => {
+    if (!response.ok) {
+        console.error('Data upload failed', response.statusText);
+    }
+    })
+    .catch(err => console.error('Fetch error:', err));
+      // jsPsych.data.get().localSave('csv','deepfake_survey_results.csv'); // Local save commented out
+    }
   });
   // Run the timeline
   jsPsych.run(timeline);
   </script>
+  <style>
+    body {
+      background-color: #0e0e0f;
+      color: #eeeeee;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+    h2 {
+      color: #61dafb;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+    ul {
+      list-style-type: disc;
+      margin-left: 1.5rem;
+      margin-bottom: 1rem;
+      color: #cccccc;
+      max-width: 600px;
+      text-align: left;
+    }
+    li {
+      margin-bottom: 0.75rem;
+      font-size: 1.1rem;
+    }
+    .jspsych-btn {
+      font-size: 18px;
+      padding: 12px 28px;
+      background-color: transparent;
+      color: #61dafb;
+      border: 2px solid #61dafb;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: none;
+      font-weight: 600;
+      margin: 10px;
+      min-width: 120px;
+    }
+    .jspsych-btn:hover, .jspsych-btn:focus {
+      background-color: #61dafb;
+      color: #0e0e0f;
+      box-shadow: 0 0 10px #61dafb;
+      outline: none;
+    }
+    .jspsych-image-button-response-stimulus {
+      border: 3px solid #61dafb;
+      border-radius: 12px;
+      box-shadow: 0 0 15px #1e90ff88;
+      max-width: 90vw;
+      max-height: 600px;
+      margin-bottom: 1.5rem;
+      margin-left: auto;
+      margin-right: auto;
+      width: auto;
+      height: auto;
+      
+    }
+
+    .jspsych-display-element { 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 21px; line-height: 1.6em; 
+}
+  </style>
 </body>
 </html>
