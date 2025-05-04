@@ -9,6 +9,16 @@
   <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@1.1.3"></script>
   <link href="https://unpkg.com/jspsych@7.3.4/css/jspsych.css" rel="stylesheet" type="text/css" />
   <script src="https://unpkg.com/@jspsych/plugin-image-button-response@1.2.0"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-preload@1.1.0"></script>
+  <style>
+    /* limit the on-screen size of stimuli */
+    img.jspsych-image-button-response-stimulus {
+      max-width: 600px;
+      max-height: 400px;
+      width: auto;
+      height: auto;
+    }
+  </style>
 </head>
 <body>
   <div id="jspsych-target"></div>
@@ -48,14 +58,22 @@
     .concat(sampleFakes.map(url => ({ url, label: "Fake" })));
   trials = sample(trials, trials.length);
 
-  // 5) jsPsych timeline
-  const timeline = trials.map(trial => ({
-    type: jsPsychImageButtonResponse,  // Updated to use plugin class
-    stimulus: trial.url,
-    choices: ['Real', 'Deepfake'],
-    prompt: '<p>Is this image a deepfake?</p>',
-    data: { correct_label: trial.label }
-  }));
+  // 5) jsPsych timeline with preload and resized images
+  const preload = {
+    type: jsPsychPreload,
+    images: realImages.concat(...Object.values(methods).flat())
+  };
+  const timeline = [preload].concat(
+    trials.map(trial => ({
+      type: jsPsychImageButtonResponse,
+      stimulus: trial.url,
+      stimulus_width: 600,
+      stimulus_height: 400,
+      choices: ['Real', 'Deepfake'],
+      prompt: '<p>Is this image a deepfake?</p>',
+      data: { correct_label: trial.label }
+    }))
+  );
 
   // Initialize jsPsych (v7)
   const jsPsych = initJsPsych({
