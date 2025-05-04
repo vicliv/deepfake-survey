@@ -128,7 +128,8 @@
         func: () => {
           // Transform image‑trial data only
           const rawArray = JSON.parse(jsPsych.data.get().json())
-            .filter(trial => trial.stimulus);   // keep only image trials
+          .filter(trial => trial.trial_index !== 0) // Exclude instructions trial (trial_index: 0)
+          .filter(trial => trial.stimulus);   // keep only image trials
           const transformed = rawArray.map(t => ({
             trial_index: t.trial_index,
             stimulus: t.stimulus,
