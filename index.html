@@ -10,6 +10,7 @@
   <script src="https://unpkg.com/@jspsych/plugin-html-button-response@1.1.0"></script>
   <link href="https://unpkg.com/jspsych@7.3.4/css/jspsych.css" rel="stylesheet" type="text/css" />
   <script src="https://unpkg.com/@jspsych/plugin-image-button-response@1.2.0"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-call-function@1.1.0"></script>
   <!-- Firebase SDK (compat build so `firebase.initializeApp` works) -->
   <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-database-compat.js"></script>
@@ -31,6 +32,18 @@
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
+
+    // Thank‑you screen
+    const thankYou = {
+        type: jsPsychHtmlButtonResponse,
+        stimulus: `
+            <h2>Thank you for participating!</h2>
+            <p>Your responses have been recorded.</p>
+            <p>If you’re curious about the ground‑truth labels, you can browse the <code>images</code> folders in our GitHub repo:</p>
+            <p><a href="https://github.com/vicliv/deepfake-survey/tree/main/images" target="_blank">github.com/vicliv/deepfake-survey</a></p>
+        `,
+        choices: ['Finish']
+    };
     
     // == Experiment configuration ==
     // 1) List of 24 real image URLs
@@ -109,33 +122,35 @@
         stimulus_height: 500 // Set height in pixels
       }));
       
-      // Combine instructions and image trials
-      const timeline = [instructions, ...imageTrials];
+      // Data‑upload trial (runs after the last image, before thank‑you)
+      const submitData = {
+        type: jsPsychCallFunction,
+        func: () => {
+          // Transform image‑trial data only
+          const rawArray = JSON.parse(jsPsych.data.get().json())
+            .filter(trial => trial.stimulus);   // keep only image trials
+          const transformed = rawArray.map(t => ({
+            trial_index: t.trial_index,
+            stimulus: t.stimulus,
+            response: t.response === 'Real' ? 0 : 1,
+            rt: t.rt,
+            correct_label: t.correct_label === 'Real' ? 0 : 1
+          }));
+          // Push once to Firebase
+          database.ref('survey_responses').push(transformed)
+            .then(() => console.log('Data uploaded before thank‑you'))
+            .catch(err => console.error('Firebase upload error:', err));
+        }
+      };
+
+    // Combine instructions, image trials, submitData, and thank‑you screen
+    const timeline = [instructions, ...imageTrials, submitData, thankYou];
 
   // Initialize jsPsych (v7)
   const jsPsych = initJsPsych({
   display_element: 'jspsych-target',
   on_finish: () => {
-    // Transform trial data
-    const rawArray = JSON.parse(jsPsych.data.get().json());
-    const transformedArray = rawArray.filter(trial => trial.trial_index !== 0) // Exclude instructions trial
-      .map(trial => ({
-        trial_index: trial.trial_index,
-        stimulus: trial.stimulus,
-        response: trial.response === 'Real' ? 0 : 1,
-        rt: trial.rt,
-        correct_label: trial.correct_label === 'Real' ? 0 : 1
-      }));
-    const payload = transformedArray; // No need to stringify for Firebase
-
-    // Send data to Firebase
-    database.ref('survey_responses').push(payload)
-      .then(() => {
-        console.log('Data successfully uploaded to Firebase');
-      })
-      .catch(err => {
-        console.error('Firebase upload error:', err);
-      });
+    console.log('Experiment finished (data was already sent).');
   }
   });
   // Run the timeline
