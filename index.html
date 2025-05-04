@@ -11,6 +11,7 @@
   <link href="https://unpkg.com/jspsych@7.3.4/css/jspsych.css" rel="stylesheet" type="text/css" />
   <script src="https://unpkg.com/@jspsych/plugin-image-button-response@1.2.0"></script>
   <script src="https://unpkg.com/@jspsych/plugin-call-function@1.1.0"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-survey-text@1.1.3"></script>
   <!-- Firebase SDK (compat build so `firebase.initializeApp` works) -->
   <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-database-compat.js"></script>
@@ -94,6 +95,19 @@
     // 6) Shuffle trial order
     trials = sample(trials, trials.length);
 
+    // Name‑entry screen (runs first)
+    const nameSurvey = {
+      type: jsPsychSurveyText,
+      preamble: `
+        <h2>Welcome to the Deepfake Detection Survey</h2>
+        <p>Please enter your name below, then click <strong>Next</strong> to begin.</p>
+        <p>Note: Your name will only be used to uniquely identify your responses.</p>
+      `,
+      questions: [
+        { prompt: "Your name:", name: "participant_name", required: true }
+      ],
+      button_label: "Next"
+    };
     // 5) jsPsych timeline
     // Instructions trial
     const instructions = {
@@ -126,6 +140,9 @@
       const submitData = {
         type: jsPsychCallFunction,
         func: () => {
+          // Extract participant name from the first survey‑text trial
+          const nameTrial = jsPsych.data.get().filter({trial_type: 'survey-text'}).values()[0];
+          const participantName = nameTrial ? Object.values(nameTrial.response)[0] : 'Anonymous';
           // Transform image‑trial data only
           const rawArray = JSON.parse(jsPsych.data.get().json())
           .filter(trial => trial.trial_index !== 0) // Exclude instructions trial (trial_index: 0)
@@ -138,14 +155,17 @@
             correct_label: t.correct_label === 'Real' ? 0 : 1
           }));
           // Push once to Firebase
-          database.ref('survey_responses').push(transformed)
+          database.ref('survey_responses').push({
+            participant: participantName,
+            trials: transformed
+          })
             .then(() => console.log('Data uploaded before thank‑you'))
             .catch(err => console.error('Firebase upload error:', err));
         }
       };
 
-    // Combine instructions, image trials, submitData, and thank‑you screen
-    const timeline = [instructions, ...imageTrials, submitData, thankYou];
+    // Combine name screen, instructions, image trials, submitData, and thank‑you screen
+    const timeline = [instructions, nameSurvey, ...imageTrials, submitData, thankYou];
 
   // Initialize jsPsych (v7)
   const jsPsych = initJsPsych({
