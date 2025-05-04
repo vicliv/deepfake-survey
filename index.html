@@ -133,7 +133,7 @@
           const transformed = rawArray.map(t => ({
             trial_index: t.trial_index,
             stimulus: t.stimulus,
-            response: t.response === 'Real' ? 0 : 1,
+            response: Number(t.response), // 0 = Real, 1 = Deepfake
             rt: t.rt,
             correct_label: t.correct_label === 'Real' ? 0 : 1
           }));
