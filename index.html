@@ -23,7 +23,7 @@
     const methods = {
       "4o":   Array.from({length: 24}, (_, i) => `images/4o/image_${i}.png`),
       "Flux.1-dev": Array.from({length: 24}, (_, i) => `images/Flux.1-dev/image_${i}.png`),
-      "Grok": Array.from({length: 24}, (_, i) => `images/Grok/image_${i}.png`),
+      "Grok": Array.from({length: 24}, (_, i) => `images/Grok/image_${i}.jpg`),
       "Imagen": Array.from({length: 24}, (_, i) => `images/Imagen/image_${i}.jpg`),
       "SD2":  Array.from({length: 24}, (_, i) => `images/SD2/image_${i}.png`),
       "SDv3.5": Array.from({length: 24}, (_, i) => `images/SDv3.5/image_${i}.png`)
@@ -73,11 +73,9 @@
           <p>In this survey, you will view a series of images and decide whether each one is <strong>Real</strong> or a <strong>Deepfake</strong>.</p>
           <p><strong>Instructions:</strong></p>
             <p>Each image will be shown one at a time.</p>
-            <p>The deepfakes were created using a variety of methods. Some are difficult to detect, while others are much easier to spot. Please examine each image carefully.</p>
+            <p>The deepfakes are generated using various methods, some much better than others. Thus, examine the image carefully.</p>
             <p>Click the <strong>Real</strong> button if you think the image is a real photograph.</p>
             <p>Click the <strong>Deepfake</strong> button if you think the image is computer-generated or manipulated.</p>
-            <p>You won't be able to go back to previous images, so please make your best guess.</p>
-            <p>Do not take the survey more than once.</p>
         `,
         choices: ["Start"] // Allows any key press to proceed
       };
