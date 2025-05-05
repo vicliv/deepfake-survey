@@ -11,7 +11,7 @@ This survey presents 24 real photographs paired with 24 synthetic images generat
 ## 📸 Real Images
 
 * **Source**: LAION‑400M dataset
-* **Prompt Extraction**: We used a multimodal model (Qwen‑2.5) to automatically extract a concise descriptive prompt for each real photograph.
+* **Prompt Extraction**: We used a multimodal model (Qwen‑2.5) to automatically extract a concise descriptive prompt for each real photograph. You can see the prompts used in *prompts.txt*.
 
 ```text
 Example Prompt (real/image_0.jpg): “A bustling city street at sunset, with pedestrians crossing and warm light reflecting off wet pavement.”
@@ -29,7 +29,7 @@ We generated 24 images from each prompt using the following models:
 | ------------------------ | ----------- | ------------------------------------------------------------------------------------- |
 | **ChatGPT 4o**           | OpenAI      | Excellent with rendering text in scenes; overall look is soft and painterly.          |
 | **Imagen 3**             | Google      | Highly photorealistic but often struggles with legible text.                          |
-| **Grok**                 | xAI         | Great at rendering people and known figures; less reliable on landscapes or crowds.   |
+| **Grok**                 | xAI         | Great at rendering people and known figures; less reliable on complex scenes.   |
 | **Flux.1-dev**          | Open Source | Leading open‑source image model; balances realism and prompt fidelity.                |
 | **Stable Diffusion 2.1** | Open Source | State‑of‑the‑art in 2022; set the benchmark for community models.                     |
 | **Stable Diffusion 3.5** | Open Source | Improved visual quality but sometimes loses prompt adherence; hands/faces can be off. |
@@ -39,16 +39,16 @@ We generated 24 images from each prompt using the following models:
 ## 🎨 Example Images
 
 <p align="center">
-  <img src="images/real/image_0.jpg"  alt="Real Example" width="200" />
-  <img src="images/4o/image_0.png"    alt="4o Example" width="200" />
-  <img src="images/Imagen/image_0.jpg" alt="Imagen 3 Example" width="200" />
-  <img src="images/Grok/image_0.png"   alt="Grok Example" width="200" />
+  <img src="images/real/image_0.jpg"  alt="Real Example" heigth="200" />
+  <img src="images/4o/image_0.png"    alt="4o Example" heigth="200" />
+  <img src="images/Imagen/image_0.jpg" alt="Imagen 3 Example" heigth="200" />
+  <img src="images/Grok/image_0.png"   alt="Grok Example" heigthh="200" />
 </p>
 
 <p align="center">
-  <img src="images/Flux.1-dev/image_0.png"  alt="Flux Dev v1 Example" width="200" />
-  <img src="images/SD2/image_0.png"         alt="SD 2.1 Example" width="200" />
-  <img src="images/SDv3.5/image_0.png"      alt="SD 3.5 Example" width="200" />
+  <img src="images/Flux.1-dev/image_0.png"  alt="Flux.1-dev Example" heigthh="200" />
+  <img src="images/SD2/image_0.png"         alt="SD 2.1 Example" heigth="200" />
+  <img src="images/SDv3.5/image_0.png"      alt="SD 3.5 Example" heigth="200" />
 </p>
 
 > *Tip: Browse the full set of images under each model’s folder to see how they handle different scenes and objects.*
@@ -59,6 +59,7 @@ We generated 24 images from each prompt using the following models:
 
 ```
 ├── index.html            # jsPsych survey implementation
+├── prompts.txt           # The list of prompts
 ├── README.md             # This document
 └── images/
     ├── real/             # 24 original photographs
