@@ -20,6 +20,8 @@
   <div id="jspsych-target"></div>
 
   <script>
+    // Global string filled just before the thank‑you screen is shown
+    let scoreHTML = '';
     // Firebase configuration
     const firebaseConfig = {
     apiKey: "AIzaSyBMsjytFlmAhKhlBs1DNZx4Qc9C7Fftus8",
@@ -34,16 +36,16 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // Thank‑you screen
+    // Thank‑you screen (HTML is provided at runtime)
     const thankYou = {
-        type: jsPsychHtmlButtonResponse,
-        stimulus: `
-            <h2>Thank you for participating!</h2>
-            <p>Your responses have been recorded.</p>
-            <p>If you’re curious about the ground‑truth labels, you can browse the <code>images</code> folders in our GitHub repo:</p>
-            <p><a href="https://github.com/vicliv/deepfake-survey/tree/main/images" target="_blank">github.com/vicliv/deepfake-survey</a></p>
-        `,
-        choices: ['Finish']
+      type: jsPsychHtmlButtonResponse,
+      stimulus: () => scoreHTML || `
+        <h2>Thank you for participating!</h2>
+        <p>Your responses have been recorded.</p>
+        <p>If you’re curious about the ground‑truth labels, you can browse the <code>images</code> folders in our GitHub repo:</p>
+        <p><a href="https://github.com/vicliv/deepfake-survey/tree/main/images" target="_blank">github.com/vicliv/deepfake-survey</a></p>
+      `,
+      choices: ['Finish']
     };
     
     // == Experiment configuration ==
@@ -154,6 +156,30 @@
             rt: t.rt,
             correct_label: t.correct_label === 'Real' ? 0 : 1
           }));
+          // === Score calculation =========================================
+          const numCorrect = transformed.filter(
+            t => t.response === t.correct_label
+          ).length;
+          const total   = 24; // 12 real + 12 fake
+          const percent = Math.round((numCorrect / total) * 100);
+
+          // Count mistakes
+          const numFalsePos = transformed.filter(
+            t => t.correct_label === 0 && t.response === 1
+          ).length; // real images called deepfake
+          const numFalseNeg = transformed.filter(
+            t => t.correct_label === 1 && t.response === 0
+          ).length; // deepfakes missed
+
+          // Inject score into the thank‑you screen
+          scoreHTML = `
+            <h2>Thank you for participating!</h2>
+            <p>Your score: <strong>${numCorrect} / ${total}</strong> (${percent}%)</p>
+            <p>You mistook <strong>${numFalsePos}</strong> real image${numFalsePos === 1 ? '' : 's'} for deepfakes, and missed <strong>${numFalseNeg}</strong> deepfake${numFalseNeg === 1 ? '' : 's'}.</p>
+            <p>Your responses have been recorded.</p>
+            <p>If you’re curious about the ground‑truth labels, you can browse the <code>images</code> folders in our GitHub repo:</p>
+            <p><a href="https://github.com/vicliv/deepfake-survey/tree/main/images" target="_blank">github.com/vicliv/deepfake-survey</a></p>
+          `;
           // Push once to Firebase
           database.ref('survey_responses').push({
             participant: participantName,
