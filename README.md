@@ -39,16 +39,16 @@ We generated 24 images from each prompt using the following models:
 ## 🎨 Example Images
 
 <p align="center">
-  <img src="images/real/image_0.jpg"  alt="Real Example" heigth="200" />
-  <img src="images/4o/image_0.png"    alt="4o Example" heigth="200" />
-  <img src="images/Imagen/image_0.jpg" alt="Imagen 3 Example" heigth="200" />
-  <img src="images/Grok/image_0.png"   alt="Grok Example" heigthh="200" />
+  <img src="images/real/image_0.jpg"  alt="Real Example" height="200" />
+  <img src="images/4o/image_0.png"    alt="4o Example" height="200" />
+  <img src="images/Imagen/image_0.jpg" alt="Imagen 3 Example" height="200" />
+  <img src="images/Grok/image_0.png"   alt="Grok Example" height="200" />
 </p>
 
 <p align="center">
-  <img src="images/Flux.1-dev/image_0.png"  alt="Flux.1-dev Example" heigthh="200" />
-  <img src="images/SD2/image_0.png"         alt="SD 2.1 Example" heigth="200" />
-  <img src="images/SDv3.5/image_0.png"      alt="SD 3.5 Example" heigth="200" />
+  <img src="images/Flux.1-dev/image_0.png"  alt="Flux.1-dev Example" height="200" />
+  <img src="images/SD2/image_0.png"         alt="SD 2.1 Example" height="200" />
+  <img src="images/SDv3.5/image_0.png"      alt="SD 3.5 Example" height="200" />
 </p>
 
 > *Tip: Browse the full set of images under each model’s folder to see how they handle different scenes and objects.*
