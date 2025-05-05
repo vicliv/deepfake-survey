@@ -177,16 +177,16 @@
             <p>Your score: <strong>${numCorrect} / ${total}</strong> (${percent}%)</p>
             <p>You mistook <strong>${numFalsePos}</strong> real image${numFalsePos === 1 ? '' : 's'} for deepfakes, and missed <strong>${numFalseNeg}</strong> deepfake${numFalseNeg === 1 ? '' : 's'}.</p>
             <p>Your responses have been recorded.</p>
-            <p>If you’re curious to see all the images, you can browse the <code>images</code> folders in our GitHub repo:</p>
-            <p><a href="https://github.com/vicliv/deepfake-survey/tree/main/images" target="_blank">github.com/vicliv/deepfake-survey</a></p>
+            <p>If you’re curious to know how the images were generated, you can read the REAMDE.md file and browse the <code>images</code> folders in our GitHub repo:</p>
+            <p><a href="https://github.com/vicliv/deepfake-survey/" target="_blank">github.com/vicliv/deepfake-survey</a></p>
           `;
           // Generate review of responses with highlighted images
-          let reviewHTML = '<h3>Review your answers</h3><div style="display:flex;flex-wrap:wrap;justify-content:center;">';
+          let reviewHTML = '<h3>Your answers</h3><div style="display:flex;flex-wrap:wrap;justify-content:center;">';
           transformed.forEach(t => {
             const borderColor = t.response === t.correct_label ? '#61df61' : '#ff6161';
             reviewHTML += `<div style="margin:5px;text-align:center;">
-              <img src="${t.stimulus}" style="width:150px;height:auto;border:3px solid ${borderColor};border-radius:4px;"><br>
-              <small>Your answer: ${t.response===0?'Real':'Deepfake'}; Correct: ${t.correct_label===0?'Real':'Deepfake'}</small>
+              <img src="${t.stimulus}" style="height:150px;width:auto;border:3px solid ${borderColor};border-radius:4px;"><br>
+              <small>${t.correct_label===0?'Real':'Deepfake'}</small>
             </div>`;
           });
           reviewHTML += '</div>';
