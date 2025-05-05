@@ -14,7 +14,7 @@ This survey presents 24 real photographs paired with 24 synthetic images generat
 * **Prompt Extraction**: We used a multimodal model (Qwen‑2.5) to automatically extract a concise descriptive prompt for each real photograph. You can see the prompts used in *prompts.txt*.
 
 ```text
-Example Prompt (real/image_0.jpg): “A bustling city street at sunset, with pedestrians crossing and warm light reflecting off wet pavement.”
+Example Prompt (real/image_0.jpg): “A photograph of the Mission Hills Endodontic staff, consisting of several individuals dressed in black, posing together outdoors with trees and playground equipment in the background.”
 ```
 
 These prompts serve as inputs to various generative models, producing diverse synthetic counterparts.
